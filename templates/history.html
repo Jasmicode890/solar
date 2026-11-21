@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction History | SolarPredict</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="dashboard">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">☀</div>
+            <div>
+                <h2>SolarPredict</h2>
+                <p>Energy Intelligence</p>
+            </div>
+        </div>
+
+        <div class="menu-title">MAIN MENU</div>
+        <nav>
+            <a href="/" class="nav-item"><span>⌂</span>Dashboard</a>
+            <a href="/predict" class="nav-item"><span>⚡</span>Make Prediction</a>
+            <a href="/history" class="nav-item active"><span>▣</span>Prediction History</a>
+        </nav>
+
+        <div class="sidebar-info">
+            <div class="mini-sun">☀</div>
+            <div>
+                <strong>Solar System</strong>
+                <small>ML monitoring active</small>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <p class="page-label">SOLAR ENERGY MONITORING</p>
+                <h1>Prediction History</h1>
+            </div>
+            <div class="system-status"><span class="status-dot"></span>System Online</div>
+        </header>
+
+        {% set total = records|length %}
+        {% if records %}
+            {% set latest = records[0][5] %}
+            {% set ns = namespace(sum=0) %}
+            {% for record in records %}
+                {% set ns.sum = ns.sum + record[5] %}
+            {% endfor %}
+            {% set average = ns.sum / total %}
+        {% else %}
+            {% set latest = 0 %}
+            {% set average = 0 %}
+        {% endif %}
+
+        <section class="history-summary">
+            <div class="history-stat">
+                <div class="history-stat-icon">▣</div>
+                <div><p>Total Predictions</p><h2>{{ total }}</h2><span>Saved records</span></div>
+            </div>
+            <div class="history-stat">
+                <div class="history-stat-icon">≈</div>
+                <div><p>Average Power</p><h2>{{ "%.2f"|format(average) }} <small>kW</small></h2><span>Across predictions</span></div>
+            </div>
+            <div class="history-stat">
+                <div class="history-stat-icon">⚡</div>
+                <div><p>Latest Prediction</p><h2>{{ "%.2f"|format(latest) }} <small>kW</small></h2><span>Most recent result</span></div>
+            </div>
+        </section>
+
+        <section class="history-card">
+            <div class="history-heading">
+    <div>
+        <p class="page-label">DATABASE RECORDS</p>
+        <h2>Prediction Records</h2>
+        <p class="history-subtitle">
+            Environmental conditions and the corresponding model predictions.
+        </p>
+    </div>
+
+    <div class="history-actions">
+        <a href="{{ url_for('export_history_pdf') }}" class="small-action">
+            Download PDF
+        </a>
+        <a href="{{ url_for('export_history_excel') }}" class="small-action">
+            Export Excel
+        </a>
+        <a href="/predict" class="small-action">+ New Prediction</a>
+    </div>
+</div>
+
+<form method="GET" action="{{ url_for('history') }}" class="history-search">
+    <input
+        type="search"
+        name="search"
+        placeholder="Search date, temperature, irradiance, power..."
+        value="{{ search }}"
+    >
+    <button type="submit" class="small-action">Search</button>
+    {% if search %}
+        <a href="{{ url_for('history') }}" class="small-action">Clear</a>
+    {% endif %}
+</form>
+
+<p class="history-subtitle">
+    Showing {{ records|length }} records on this page
+    out of {{ total_filtered }} matching records.
+</p>
+
+
+            {% if records %}
+            <div class="table-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Temperature</th>
+                            <th>Humidity</th>
+                            <th>Irradiance</th>
+                            <th>Wind Speed</th>
+                            <th>Cloud Cover</th>
+                            <th>Predicted Power</th>
+                            <th>Date & Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for record in records %}
+                        <tr>
+                            <td><span class="record-number">
+                               {{ (page - 1) * 20 + loop.index }}
+                                </span>  </td>
+                            <td>{{ record[0] }} °C</td>
+                            <td>{{ record[1] }} %</td>
+                            <td>{{ record[2] }} W/m²</td>
+                            <td>{{ record[3] }} m/s</td>
+                            <td>{{ record[4] }} %</td>
+                            <td><strong class="power-value">{{ record[5] }} kW</strong></td>
+                            <td class="timestamp">{{ record[6] }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if total_pages > 1 %}
+<nav class="pagination" aria-label="History pages">
+    {% if page > 1 %}
+        <a href="{{ url_for('history', page=page-1, search=search) }}">
+            Previous
+        </a>
+    {% endif %}
+
+    <span>Page {{ page }} of {{ total_pages }}</span>
+
+    {% if page < total_pages %}
+        <a href="{{ url_for('history', page=page+1, search=search) }}">
+            Next
+        </a>
+    {% endif %}
+</nav>
+{% endif %}
+
+            {% else %}
+            <div class="empty-history">
+                <div>▣</div>
+                <h3>No prediction history yet</h3>
+                <p>Make your first prediction to create a record.</p>
+                <a href="/predict" class="predict-button empty-button">Make First Prediction →</a>
+            </div>
+            {% endif %}
+        </section>
+
+        <footer>
+            <span>Solar Power Generation Prediction & Monitoring System</span>
+            <span>Web + Machine Learning</span>
+        </footer>
+    </main>
+</div>
+</body>
+</html>

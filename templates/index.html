@@ -1,0 +1,780 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SolarPredict | User Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            background: #f2f7f5;
+            color: #172b28;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            width: 255px;
+            background: #103330;
+            color: white;
+            padding: 28px 20px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-size: 21px;
+            font-weight: 850;
+            padding: 8px;
+            margin-bottom: 55px;
+        }
+
+        .brand-icon {
+            display: inline-grid;
+            place-items: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 13px;
+            background: #f5b82e;
+            color: #123d34;
+            font-size: 27px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .brand small {
+            display: block;
+            font-size: 11px;
+            color: #9abdb2;
+            font-weight: 400;
+            margin-left: 58px;
+            margin-top: -5px;
+        }
+
+        .menu-title {
+            color: #7da89d;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            padding: 0 12px;
+            margin-bottom: 14px;
+        }
+
+        .nav a {
+            display: block;
+            text-decoration: none;
+            color: #bed5ce;
+            padding: 15px 14px;
+            border-radius: 12px;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            background: #1b504a;
+            color: white;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            background: #17443e;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 13px;
+        }
+
+        .sidebar-bottom small {
+            display: block;
+            color: #a0c1b5;
+            margin-top: 6px;
+        }
+
+        /* MAIN */
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 35px 4%;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            color: #75938a;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            font-size: 29px;
+            margin: 8px 0;
+        }
+
+        .subtitle {
+            color: #80918a;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .account {
+            color: #60756c;
+            font-size: 13px;
+        }
+
+        .account strong {
+            color: #176b50;
+        }
+
+        .account a {
+            margin-left: 12px;
+            color: #176b50;
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        /* STAT CARDS */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 17px;
+            padding: 20px;
+            box-shadow: 0 8px 26px #173c2910;
+            border: 1px solid #e9efeb;
+        }
+
+        .stat-label {
+            color: #82918a;
+            font-size: 12px;
+        }
+
+        .stat-value {
+            font-size: 25px;
+            font-weight: 850;
+            margin: 13px 0 6px;
+        }
+
+        .stat-value small {
+            font-size: 13px;
+            color: #70857a;
+        }
+
+        .stat-note {
+            color: #9aa7a0;
+            font-size: 11px;
+        }
+
+        /* DASHBOARD GRID */
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.7fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #e7eeea;
+            border-radius: 19px;
+            padding: 24px;
+            box-shadow: 0 8px 28px #173c290c;
+            min-width: 0;
+        }
+
+        .section-tag {
+            color: #829b91;
+            font-size: 10px;
+            letter-spacing: 2px;
+            font-weight: 850;
+        }
+
+        .panel h2 {
+            font-size: 19px;
+            margin: 8px 0 20px;
+        }
+
+        .chart-container {
+            height: 315px;
+            position: relative;
+        }
+
+        .environment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 2px;
+            border-bottom: 1px solid #edf1ee;
+            gap: 10px;
+        }
+
+        .environment-item:last-child {
+            border-bottom: none;
+        }
+
+        .environment-label {
+            color: #84938c;
+            font-size: 13px;
+        }
+
+        .environment-value {
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        /* QUICK LINKS */
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 17px;
+            margin-top: 22px;
+        }
+
+        .quick-card {
+            background: white;
+            border-radius: 16px;
+            padding: 23px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 28px #173c290c;
+            text-decoration: none;
+            color: inherit;
+            border: 1px solid #e7eeea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .quick-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px #173c2915;
+        }
+
+        .quick-card h3 {
+            font-size: 14px;
+            margin: 0 0 8px;
+        }
+
+        .quick-card p {
+            margin: 0;
+            color: #87958f;
+            font-size: 12px;
+        }
+
+        .quick-card strong {
+            color: #176b50;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .quick-icon {
+            font-size: 22px;
+            margin-right: 10px;
+        }
+
+        footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dfe9e3;
+            color: #8b9a92;
+            font-size: 11px;
+        }
+
+        .empty-chart {
+            text-align: center;
+            color: #91a29a;
+            padding: 90px 15px;
+            font-size: 14px;
+        }
+
+        .flash {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            background: #eaf8ef;
+            color: #176c3a;
+        }
+
+        .flash.danger {
+            background: #fff0f0;
+            color: #a32c2c;
+        }
+
+        .flash.warning {
+            background: #fff5e7;
+            color: #8a5200;
+        }
+
+        .flash.info {
+            background: #eef5ff;
+            color: #24558e;
+        }
+
+        @media(max-width: 1050px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media(max-width: 700px) {
+            .layout {
+                display: block;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 15px;
+            }
+
+            .brand {
+                margin-bottom: 15px;
+            }
+
+            .menu-title {
+                display: none;
+            }
+
+            .nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .nav a {
+                padding: 10px;
+            }
+
+            .sidebar-bottom {
+                display: none;
+            }
+
+            .main {
+                padding: 22px 15px;
+            }
+
+            .quick-links {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        @media(max-width: 420px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .panel {
+                padding: 17px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- USER SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <span class="brand-icon">☀</span>
+            SolarPredict
+            <small>Energy Intelligence</small>
+        </div>
+
+        <div class="menu-title">MAIN MENU</div>
+
+        <nav class="nav">
+
+            <a class="active" href="{{ url_for('user_dashboard') }}">
+                ⌂ &nbsp; Dashboard
+            </a>
+
+            <a href="{{ url_for('predict') }}">
+                ⚡ &nbsp; Make Prediction
+            </a>
+
+            <a href="{{ url_for('history') }}">
+                ▣ &nbsp; Prediction History
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+            ☀ &nbsp; Solar System
+            <small>ML monitoring active</small>
+        </div>
+
+    </aside>
+
+
+    <!-- USER DASHBOARD CONTENT -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div>
+                <div class="eyebrow">SOLAR ENERGY MONITORING</div>
+
+                <h1>Welcome, {{ session.get('username', 'User') }}</h1>
+
+                <p class="subtitle">
+                    Monitor your solar power predictions and environmental data.
+                </p>
+            </div>
+
+            <div class="account">
+                Account: <strong>USER</strong>
+                <a href="{{ url_for('logout') }}">Logout ↗</a>
+            </div>
+
+        </header>
+
+
+        <!-- FLASH MESSAGES -->
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+
+        <!-- SUMMARY CARDS -->
+
+        <section class="stats">
+
+            <div class="stat-card">
+                <div class="stat-label">Latest Prediction</div>
+
+                <div class="stat-value">
+                    {% if latest_prediction is not none %}
+                        {{ '%.2f'|format(latest_prediction|float) }}
+                    {% else %}
+                        --
+                    {% endif %}
+                    <small>kW</small>
+                </div>
+
+                <div class="stat-note">Most recent result</div>
+            </div>
+
+
+            <div class="stat-card">
+                <div class="stat-label">Temperature</div>
+
+                <div class="stat-value">
+                    {% if latest_temperature is not none %}
+                        {{ latest_temperature }}
+                    {% else %}
+                        --
+                    {% endif %}
+                    <small>°C</small>
+                </div>
+
+                <div class="stat-note">Latest input</div>
+            </div>
+
+
+            <div class="stat-card">
+                <div class="stat-label">Solar Irradiance</div>
+
+                <div class="stat-value">
+                    {% if latest_irradiance is not none %}
+                        {{ latest_irradiance }}
+                    {% else %}
+                        --
+                    {% endif %}
+                    <small>W/m²</small>
+                </div>
+
+                <div class="stat-note">Latest input</div>
+            </div>
+
+
+            <div class="stat-card">
+                <div class="stat-label">Your Predictions</div>
+
+                <div class="stat-value">
+                    {{ total_predictions }}
+                </div>
+
+                <div class="stat-note">Saved database records</div>
+            </div>
+
+        </section>
+
+
+        <!-- CHART AND ENVIRONMENT -->
+
+        <section class="dashboard-grid">
+
+            <div class="panel">
+
+                <div class="section-tag">ANALYTICS</div>
+
+                <h2>Solar Power Generation</h2>
+
+                {% if records %}
+
+                    <div class="chart-container">
+                        <canvas id="predictionChart"></canvas>
+                    </div>
+
+                {% else %}
+
+                    <div class="empty-chart">
+                        📈
+                        <h3>Power generation graph</h3>
+                        <p>Your prediction data will appear here.</p>
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="section-tag">MONITORING</div>
+
+                <h2>Environmental Data</h2>
+
+                <div class="environment-item">
+                    <span class="environment-label">
+                        🌡️ &nbsp; Temperature
+                    </span>
+
+                    <span class="environment-value">
+                        {{ latest_temperature if latest_temperature is not none else '--' }} °C
+                    </span>
+                </div>
+
+
+                <div class="environment-item">
+                    <span class="environment-label">
+                        💧 &nbsp; Humidity
+                    </span>
+
+                    <span class="environment-value">
+                        {{ latest_humidity if latest_humidity is not none else '--' }} %
+                    </span>
+                </div>
+
+
+                <div class="environment-item">
+                    <span class="environment-label">
+                        ☀️ &nbsp; Solar Irradiance
+                    </span>
+
+                    <span class="environment-value">
+                        {{ latest_irradiance if latest_irradiance is not none else '--' }} W/m²
+                    </span>
+                </div>
+
+
+                <div class="environment-item">
+                    <span class="environment-label">
+                        ☁️ &nbsp; Cloud Cover
+                    </span>
+
+                    <span class="environment-value">
+                        {{ latest_cloud_cover if latest_cloud_cover is not none else '--' }} %
+                    </span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- QUICK ACCESS -->
+
+        <section class="quick-links">
+
+            <a class="quick-card" href="{{ url_for('predict') }}">
+
+                <div>
+                    <h3>
+                        <span class="quick-icon">🔮</span>
+                        Generate a new prediction
+                    </h3>
+
+                    <p>
+                        Enter environmental conditions and estimate solar power generation.
+                    </p>
+                </div>
+
+                <strong>Start Prediction →</strong>
+
+            </a>
+
+
+            <a class="quick-card" href="{{ url_for('history') }}">
+
+                <div>
+                    <h3>
+                        <span class="quick-icon">🕒</span>
+                        Prediction history
+                    </h3>
+
+                    <p>
+                        View your previously generated predictions and environmental conditions.
+                    </p>
+                </div>
+
+                <strong>View History →</strong>
+
+            </a>
+
+        </section>
+
+
+        <footer>
+            <span>Solar Power Generation Prediction &amp; Monitoring System</span>
+            <span>Web + Machine Learning</span>
+        </footer>
+
+    </main>
+
+</div>
+
+
+<!-- CHART DATA -->
+
+{% if records %}
+<div
+    id="prediction-data"
+    data-records="{{ records | tojson | forceescape }}"
+    hidden>
+</div>
+{% endif %}
+
+
+<!-- CHART.JS -->
+
+<script>
+(function () {
+
+    const dataElement = document.getElementById("prediction-data");
+    const chartCanvas = document.getElementById("predictionChart");
+
+    if (!dataElement || !chartCanvas || typeof Chart === "undefined") {
+        return;
+    }
+
+    let predictionRecords = [];
+
+    try {
+        predictionRecords = JSON.parse(
+            dataElement.dataset.records || "[]"
+        );
+    } catch (error) {
+        console.error("Unable to read prediction data:", error);
+        return;
+    }
+
+    const labels = predictionRecords.map(row => row[1]);
+    const values = predictionRecords.map(row => row[0]);
+
+    new Chart(chartCanvas, {
+        type: "line",
+
+        data: {
+            labels: labels,
+
+            datasets: [{
+                label: "Predicted Power (kW)",
+                data: values,
+                borderColor: "#16845a",
+                backgroundColor: "rgba(22, 132, 90, 0.10)",
+                borderWidth: 3,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    display: true,
+                    position: "top"
+                }
+            },
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+
+                    title: {
+                        display: true,
+                        text: "Power (kW)"
+                    }
+                },
+
+                x: {
+                    title: {
+                        display: true,
+                        text: "Prediction Date"
+                    }
+                }
+            }
+        }
+    });
+
+})();
+</script>
+
+</body>
+</html>

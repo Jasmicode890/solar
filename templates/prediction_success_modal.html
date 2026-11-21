@@ -1,0 +1,212 @@
+
+{% if prediction is not none %}
+
+<style>
+    .solar-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: rgba(10, 35, 27, 0.68);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        animation: solarFadeIn 0.25s ease;
+    }
+
+    .solar-modal-card {
+        position: relative;
+        width: 100%;
+        max-width: 450px;
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 38px 30px;
+        text-align: center;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+        animation: solarSlideUp 0.3s ease;
+    }
+
+    .solar-success-icon {
+        width: 76px;
+        height: 76px;
+        margin: 0 auto 20px;
+        background: #e8f7ed;
+        color: #17834f;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 38px;
+        font-weight: 800;
+        border: 5px solid #f4fbf6;
+    }
+
+    .solar-modal-card h2 {
+        color: #183b2c;
+        font-size: 25px;
+        margin: 0 0 10px;
+    }
+
+    .solar-modal-description {
+        color: #718078;
+        font-size: 14px;
+        line-height: 1.7;
+        margin: 0 auto 24px;
+        max-width: 330px;
+    }
+
+    .solar-result-box {
+        background: linear-gradient(135deg, #edf8f0, #f5faf6);
+        border: 1px solid #d8eddf;
+        padding: 22px;
+        border-radius: 17px;
+        margin-bottom: 25px;
+    }
+
+    .solar-result-label {
+        font-size: 11px;
+        color: #688073;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-weight: 800;
+    }
+
+    .solar-result-value {
+        color: #16764b;
+        font-size: 39px;
+        font-weight: 850;
+        margin-top: 9px;
+    }
+
+    .solar-result-value span {
+        font-size: 16px;
+        color: #547365;
+        font-weight: 700;
+    }
+
+    .solar-modal-button {
+        width: 100%;
+        border: 0;
+        border-radius: 12px;
+        padding: 14px 20px;
+        background: #176b50;
+        color: white;
+        font-size: 15px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .solar-modal-button:hover {
+        background: #10553e;
+    }
+
+    .solar-modal-close {
+        position: absolute;
+        top: 13px;
+        right: 16px;
+        border: none;
+        background: transparent;
+        color: #829087;
+        font-size: 27px;
+        cursor: pointer;
+    }
+
+    @keyframes solarFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes solarSlideUp {
+        from {
+            opacity: 0;
+            transform: translateY(18px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div
+    class="solar-modal-overlay"
+    id="solarPredictionModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="solarModalTitle"
+>
+    <div class="solar-modal-card">
+
+        <button
+            type="button"
+            class="solar-modal-close"
+            onclick="closeSolarPredictionModal()"
+            aria-label="Close popup"
+        >
+            &times;
+        </button>
+
+        <div class="solar-success-icon">
+            &#10003;
+        </div>
+
+        <h2 id="solarModalTitle">
+            Prediction Completed!
+        </h2>
+
+        <p class="solar-modal-description">
+            Your solar power prediction has been generated
+            and saved successfully.
+        </p>
+
+        <div class="solar-result-box">
+
+            <div class="solar-result-label">
+                Predicted Solar Power
+            </div>
+
+            <div class="solar-result-value">
+                {{ '%.2f'|format(prediction|float) }}
+                <span>kW</span>
+            </div>
+
+        </div>
+
+        <button
+            type="button"
+            class="solar-modal-button"
+            onclick="closeSolarPredictionModal()"
+        >
+            Continue to Dashboard
+        </button>
+
+    </div>
+</div>
+
+<script>
+    function closeSolarPredictionModal() {
+        const modal = document.getElementById(
+            "solarPredictionModal"
+        );
+
+        if (modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") {
+            closeSolarPredictionModal();
+        }
+    });
+
+    document.getElementById("solarPredictionModal")
+        ?.addEventListener("click", function(event) {
+            if (event.target === this) {
+                closeSolarPredictionModal();
+            }
+        });
+</script>
+
+{% endif %}

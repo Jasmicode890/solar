@@ -1,0 +1,308 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Prediction | SolarPredict</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+<div class="dashboard">
+
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">☀</div>
+            <div>
+                <h2>SolarPredict</h2>
+                <p>Energy Intelligence</p>
+            </div>
+        </div>
+
+        <div class="menu-title">MAIN MENU</div>
+
+        <nav>
+            <a href="/" class="nav-item"><span>⌂</span> Dashboard</a>
+            <a href="/predict" class="nav-item active"><span>⚡</span> Make Prediction</a>
+            <a href="/history" class="nav-item"><span>▣</span> Prediction History</a>
+        </nav>
+
+        <div class="sidebar-info">
+            <div class="mini-sun">☀</div>
+            <div>
+                <strong>Solar System</strong>
+                <small>ML monitoring active</small>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div>
+                <p class="page-label">SOLAR ENERGY MONITORING</p>
+                <h1>Make a Prediction</h1>
+            </div>
+            <div class="system-status">
+                <span class="status-dot"></span> System Online
+            </div>
+        </header>
+
+        <section class="prediction-layout">
+
+            <div class="prediction-intro">
+                <div class="prediction-icon">⚡</div>
+                <p class="page-label">MACHINE LEARNING PREDICTION</p>
+                <h2>Predict Solar Power</h2>
+                <p>
+                    Enter the current environmental conditions.
+                    The trained Random Forest Regression model will
+                    estimate the expected solar power generation.
+                </p>
+
+                <div class="input-guide">
+                    <div><strong>5</strong><span>Input Parameters</span></div>
+                    <div><strong>RF</strong><span>ML Algorithm</span></div>
+                    <div><strong>kW</strong><span>Output Unit</span></div>
+                </div>
+            </div>
+
+            <div class="prediction-card">
+
+                <div class="card-heading prediction-heading">
+                    <div>
+                        <p class="page-label">ENVIRONMENTAL INPUTS</p>
+                        <h2>Enter Parameters</h2>
+                    </div>
+                    <span class="input-badge">Required</span>
+                </div>
+
+                <form action="/predict" method="POST" class="prediction-form">
+
+                    <div class="weather-section">
+                        <button type="button" id="fetchWeather"
+                                class="predict-button">
+                            ☁ Fetch Live Weather
+                        </button>
+
+                        <div id="weatherStatus"
+                             class="weather-status"
+                             role="status"
+                             aria-live="polite">
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+
+                        <div class="form-field">
+                            <label for="temperature">
+                                Temperature <span>°C</span>
+                            </label>
+                            <div class="input-wrap">
+                                <span>🌡</span>
+                                <input id="temperature" type="number"
+                                       step="any" name="temperature"
+                                       placeholder="e.g. 31" required>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="humidity">
+                                Humidity <span>%</span>
+                            </label>
+                            <div class="input-wrap">
+                                <span>💧</span>
+                                <input id="humidity" type="number"
+                                       step="any" name="humidity"
+                                       placeholder="e.g. 50" required>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="solar_irradiance">
+                                Solar Irradiance <span>W/m²</span>
+                            </label>
+                            <div class="input-wrap">
+                                <span>☀</span>
+                                <input id="solar_irradiance" type="number"
+                                       step="any" name="solar_irradiance"
+                                       placeholder="e.g. 800" required>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="wind_speed">
+                                Wind Speed <span>m/s</span>
+                            </label>
+                            <div class="input-wrap">
+                                <span>≋</span>
+                                <input id="wind_speed" type="number"
+                                       step="any" name="wind_speed"
+                                       placeholder="e.g. 3.0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-field full-field">
+                            <label for="cloud_cover">
+                                Cloud Cover <span>%</span>
+                            </label>
+                            <div class="input-wrap">
+                                <span>☁</span>
+                                <input id="cloud_cover" type="number"
+                                       step="any" name="cloud_cover"
+                                       placeholder="e.g. 15" required>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="predict-button">
+                        <span>⚡</span> Predict Solar Power <strong>→</strong>
+                    </button>
+
+                </form>
+
+                {% if prediction is not none %}
+                <div class="prediction-result">
+                    <div class="result-icon">⚡</div>
+                    <div>
+                        <p>MODEL PREDICTION</p>
+                        <span>Predicted Solar Power</span>
+                        <strong>{{ prediction }} <small>kW</small></strong>
+                    </div>
+                    <div class="result-check">✓</div>
+                </div>
+                {% endif %}
+
+            </div>
+        </section>
+
+        <section class="info-strip">
+            <div>
+                <span>1</span>
+                <div>
+                    <strong>Enter data</strong>
+                    <small>Provide five environmental values</small>
+                </div>
+            </div>
+            <div>
+                <span>2</span>
+                <div>
+                    <strong>Run model</strong>
+                    <small>Random Forest processes the inputs</small>
+                </div>
+            </div>
+            <div>
+                <span>3</span>
+                <div>
+                    <strong>View result</strong>
+                    <small>Prediction is saved to history</small>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <span>Solar Power Generation Prediction &amp; Monitoring System</span>
+            <span>Web + Machine Learning</span>
+        </footer>
+
+    </main>
+</div>
+
+<script>
+document.getElementById("fetchWeather").addEventListener("click", async function () {
+    const button = this;
+    const status = document.getElementById("weatherStatus");
+
+    button.disabled = true;
+    status.replaceChildren();
+
+    const loading = document.createElement("p");
+    loading.textContent = "Fetching weather data...";
+    status.appendChild(loading);
+
+    try {
+        const response = await fetch("/api/weather");
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Weather request failed.");
+        }
+
+        document.getElementById("temperature").value = data.temperature;
+        document.getElementById("humidity").value = data.humidity;
+        document.getElementById("solar_irradiance").value = data.solar_irradiance;
+
+        // Convert wind speed from km/h to m/s.
+        document.getElementById("wind_speed").value =
+            (Number(data.wind_speed_kmh) / 3.6).toFixed(2);
+
+        document.getElementById("cloud_cover").value = data.cloud_cover;
+
+        // Format the API timestamp into separate date and time.
+        const timestamp = new Date(data.timestamp);
+
+        if (Number.isNaN(timestamp.getTime())) {
+            throw new Error("The weather API returned an invalid timestamp.");
+        }
+
+        const dateText = timestamp.toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            timeZone: "Asia/Kolkata"
+        });
+
+        const timeText = timestamp.toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+            timeZone: "Asia/Kolkata"
+        });
+
+        status.replaceChildren();
+
+        const locationMessage = document.createElement("p");
+        locationMessage.className = "weather-location";
+        locationMessage.textContent = "✓ Weather loaded for " + data.location;
+        status.appendChild(locationMessage);
+
+        const dateRow = document.createElement("p");
+        dateRow.className = "weather-date";
+        dateRow.textContent = "📅 Date: " + dateText;
+        status.appendChild(dateRow);
+
+        const timeRow = document.createElement("p");
+        timeRow.className = "weather-time";
+        timeRow.textContent = "🕒 Time: " + timeText;
+        status.appendChild(timeRow);
+
+        const instruction = document.createElement("p");
+        instruction.className = "weather-instruction";
+        instruction.textContent =
+            "Check the values, then click Predict Solar Power.";
+        status.appendChild(instruction);
+
+    } catch (error) {
+        status.replaceChildren();
+
+        const errorMessage = document.createElement("p");
+        errorMessage.className = "weather-error";
+        errorMessage.textContent =
+            "Could not fetch weather: " + error.message;
+
+        status.appendChild(errorMessage);
+
+    } finally {
+        button.disabled = false;
+    }
+});
+</script>
+
+{% include 'prediction_success_modal.html' %}
+
+</body>
+</html>
