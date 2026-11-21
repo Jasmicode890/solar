@@ -3,6 +3,7 @@ from flask import (
     redirect, url_for, session, flash
 )
 import sqlite3
+import psycopg
 import secrets
 from functools import wraps
 import joblib
@@ -17,6 +18,7 @@ from io import BytesIO
 from math import ceil
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
+from psycopg.rows import tuple_row
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
@@ -30,10 +32,14 @@ load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE_PATH = os.path.join(BASE_DIR, "database", "solar.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 MODEL_PATH = os.path.join(BASE_DIR, "model", "solar_five_input_model.pkl")
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or secrets.token_hex(32)
+secret_key = os.getenv("SECRET_KEY")
+if os.getenv("VERCEL") == "1" and not secret_key:
+    raise RuntimeError("SECRET_KEY must be configured when running on Vercel.")
+app.config["SECRET_KEY"] = secret_key or secrets.token_hex(32)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = os.getenv(
@@ -211,7 +217,54 @@ model = joblib.load(MODEL_PATH)
 
 
 # ------------------------- DATABASE -------------------------
+class PostgresCursor:
+    def __init__(self, cursor):
+        self.cursor = cursor
+
+    def execute(self, query, parameters=()):
+        self.cursor.execute(query.replace("?", "%s"), parameters)
+        return self
+
+    def fetchone(self):
+        return self.cursor.fetchone()
+
+    def fetchall(self):
+        return self.cursor.fetchall()
+
+
+class PostgresConnection:
+    def __init__(self, connection):
+        self.connection = connection
+
+    def cursor(self):
+        return PostgresCursor(self.connection.cursor())
+
+    def execute(self, query, parameters=()):
+        return PostgresCursor(self.connection.execute(
+            query.replace("?", "%s"), parameters
+        ))
+
+    def commit(self):
+        self.connection.commit()
+
+    def close(self):
+        self.connection.close()
+
+
 def get_db_connection():
+    if DATABASE_URL:
+        return PostgresConnection(psycopg.connect(
+            DATABASE_URL,
+            connect_timeout=20,
+            row_factory=tuple_row
+        ))
+
+    if os.getenv("VERCEL") == "1":
+        raise RuntimeError(
+            "DATABASE_URL must be configured with a persistent PostgreSQL "
+            "database when running on Vercel."
+        )
+
     os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
     # Keep the default tuple rows used by the original HTML/Chart.js templates.
     conn = sqlite3.connect(DATABASE_PATH, timeout=20)
@@ -265,38 +318,51 @@ def inject_session_user():
 
 def init_db():
     """Create tables and safely migrate existing prediction records."""
-    os.makedirs("database", exist_ok=True)
     conn = get_db_connection()
     cursor = conn.cursor()
+    id_definition = (
+        "SERIAL PRIMARY KEY"
+        if DATABASE_URL
+        else "INTEGER PRIMARY KEY AUTOINCREMENT"
+    )
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {id_definition},
             username TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
             role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('admin', 'user')),
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS predictions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {id_definition},
             temperature REAL,
             humidity REAL,
             solar_irradiance REAL,
             wind_speed REAL,
             cloud_cover REAL,
             predicted_power REAL,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             user_id INTEGER,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     """)
 
     # Existing databases won't have user_id. Add it without deleting old records.
-    cursor.execute("PRAGMA table_info(predictions)")
-    prediction_columns = {row[1] for row in cursor.fetchall()}
+    if DATABASE_URL:
+        cursor.execute("""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = current_schema()
+              AND table_name = 'predictions'
+        """)
+        prediction_columns = {row[0] for row in cursor.fetchall()}
+    else:
+        cursor.execute("PRAGMA table_info(predictions)")
+        prediction_columns = {row[1] for row in cursor.fetchall()}
     if "user_id" not in prediction_columns:
         cursor.execute("ALTER TABLE predictions ADD COLUMN user_id INTEGER")
 
@@ -385,7 +451,7 @@ def register():
                 conn.commit()
                 flash("Account created. Please log in.", "success")
                 return redirect(url_for("login"))
-            except sqlite3.IntegrityError:
+            except (sqlite3.IntegrityError, psycopg.IntegrityError):
                 flash("That username is already registered.", "danger")
             finally:
                 conn.close()

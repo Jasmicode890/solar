@@ -57,3 +57,24 @@ training. The app creates `database/solar.db` automatically.
 See `.env.example` for supported settings. Do not commit `.env` or paste
 credentials into source files. For production, use a securely generated secret
 key, HTTPS, and a production WSGI server.
+
+## Deploy on Vercel
+
+Vercel detects the Flask application in `app.py`. The `.python-version` file
+selects Python 3.13, and the static CSS is published from `public/static/`.
+
+The app uses SQLite locally. Vercel functions do not provide durable local
+storage, so this project requires a persistent PostgreSQL database when running
+on Vercel. Before deploying, import this GitHub repository into Vercel and add
+these environment variables in the Vercel project settings:
+
+- `DATABASE_URL` — PostgreSQL connection URL from Neon or another provider
+- `SECRET_KEY` — a long, random value used to sign sessions
+- `ADMIN_USERNAME` and `ADMIN_PASSWORD` — initial admin credentials; the
+  password must be at least 12 characters
+- `SESSION_COOKIE_SECURE=true` — enable secure cookies for HTTPS
+
+Email and WhatsApp notifications are optional; add their settings from
+`.env.example` if needed. The database tables and initial admin account are
+created when the app starts. Do not put database credentials in `vercel.json`
+or commit them to GitHub.

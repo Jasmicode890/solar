@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "app.py": {
+      "excludeFiles": "{static/**,public/**,database/**,dataset/**,project files/**,app_backend2.py,app_backup.py,app_before_five_input.py,test_*.py,train_*.py}"
+    }
+  }
+}

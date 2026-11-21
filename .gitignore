@@ -16,7 +16,6 @@ __pycache__/
 /database/*.db-*
 /dataset/
 /project files/
-/run.txt
 /*.pdf
 /*.ppt
 /*.pptx
